@@ -1,0 +1,132 @@
+<html>
+  <head>
+    <title>Identidock</title>
+    <link
+      rel="stylesheet"
+      href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"
+      integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u"
+      crossorigin="anonymous"
+    />
+  </head>
+  <body>
+    <div class="container-fluid">
+      <div class="row">
+        <h4 class="col">Dictionary</h4>
+      </div>
+      <div style="margin-top: 30px" class="row">
+        <div class="col-sm">
+          <form method="POST">
+            <div class="form-group row">
+              <div class="col-xs-2">
+                <input
+                  id="inputName"
+                  type="text"
+                  name="name"
+                  class="form-control"
+                  value="{{first}}"
+                  placeholder="Username"
+                  aria-label="Username"
+                  aria-describedby="basic-addon1"
+                  onkeyup="success()"
+                />
+              </div>
+              <div class="col-xs-2">
+                <button id="send-btn" type="submit" class="btn btn-primary">
+                  Find Out
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
+        <div id="form-control"></div>
+      </div>
+    </div>
+    <script>
+      document
+        .getElementById("send-btn")
+        .addEventListener("click", clickHandler, false);
+      const formControl = document.getElementById("form-control");
+      async function clickHandler(event) {
+        event.preventDefault();
+        const fetchURL = `http://${window.location.hostname}:${window.location.port}/get/`;
+        const word = document.getElementById("inputName").value;
+        const response = await fetch(fetchURL + word, { mode: "cors" });
+        if (response.status != 404) {
+          formControl.innerHTML = definitionForm(await response.text());
+          document
+            .getElementById("dif-btn")
+            .addEventListener("click", clickDifBtnHandler, false);
+        } else {
+          formControl.innerHTML = editForm(
+            "Create definition",
+            await response.text()
+          );
+          document
+            .getElementById("edit-btn")
+            .addEventListener("click", clickEditBtnHandler, false);
+        }
+      }
+      function clickDifBtnHandler() {
+        const diff = document.getElementById("diff-value").value;
+        formControl.innerHTML = editForm("Edit definition", diff);
+        document
+          .getElementById("edit-btn")
+          .addEventListener("click", clickEditBtnHandler, false);
+      }
+      async function clickEditBtnHandler() {
+        const fetchURL = `http://${window.location.hostname}:${window.location.port}/add`;
+        const word = document.getElementById("inputName").value;
+        const definition = document.getElementById("edit-value").value;
+        const response = await fetch(fetchURL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json;charset=utf-8" },
+          body: JSON.stringify({ word, definition }),
+          mode: "cors",
+        });
+        if (response.ok)
+          formControl.innerHTML = definitionForm(await response.text());
+      }
+      function success() {
+        if (document.getElementById("inputName").value === "") {
+          document.getElementById("send-btn").disabled = true;
+        } else {
+          document.getElementById("send-btn").disabled = false;
+        }
+      }
+      function definitionForm(word) {
+        return `<div class="row">
+            <h4 class="col-xs-3">Definition</h4>
+          </div>
+        <div class="row">
+          <div id="diff-value" style="word-break: break-all; margin-top: 30px" class="col-xs-3">
+              ${word}
+            </div>
+            <div style="margin-top: 23px" class="col-xs-2">
+              <button id="dif-btn" type="button" class="btn btn-link">Edit</button>
+            </div>
+        </div>`;
+      }
+      function editForm(title = "Edit", text = "") {
+        return `<div class="row">
+            <h4 class="col-xs-3">${title}</h4>
+          </div>
+          <div class="row">
+            <div
+              style="word-break: break-all; margin-top: 30px"
+              class="col-xs-3"
+            >
+              <textarea
+                id="edit-value"
+                style="resize: vertical"
+                class="form-control"
+              >${text}</textarea>
+            </div>
+            <div style="margin-top: 30px" class="col-xs-2">
+              <button id="edit-btn" type="button" class="btn btn-primary">Done</button>
+            </div>
+          </div>
+        `;
+      }
+    </script>
+  </body>
+</html>

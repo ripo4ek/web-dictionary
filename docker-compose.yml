@@ -1,0 +1,23 @@
+services:
+  dictionary-server:
+    container_name: dictionary
+    image: brendanburns/dictionary-server:latest
+    networks:
+      - dictionary-app
+  determinant:
+    ports:
+      - "5000:9090"
+    container_name: determinant
+    image: ripo4ek/flask-itmo
+    networks:
+      - dictionary-app
+  determinant-storage:
+    container_name: mongodb
+    image: mongo
+    networks:
+      - dictionary-app
+    volumes:
+      - ./mongo/volumes/mongo/data1/db:/data/db
+      - ./mongo/volumes/mongo/data1/configdb:/data/configdb
+networks:
+  dictionary-app:
